@@ -23,9 +23,9 @@ public class Main {
 		opts.addOption("h", "host", true, "Elasticsearch host (localhost)");
 		opts.addOption("p", "port", true, "Elasticsearch transport port (9300)");
 		opts.addOption("sp", "sport", true, "Elasticsearch search port (9200)");
-		opts.addOption("d", "domain", true, "Comma separated domain keys (all)");
+		opts.addOption("d", "domain", false, "Comma separated domain keys (all)");
 		opts.addOption("q", "query", true, "Filter documents by query string");
-		opts.addOption("s", "size", true, "Fetch size (5000)");
+		opts.addOption("s", "size", true, "Fetch size (5000) for exporting, Batch size for importing (100)");
 		opts.addOption("a", "alive", true, "Keepalive in millis (60000)");
 		opts.addOption("v", "verbose", false, "Verbose mode (false)");
 		opts.addOption("o", "out", true, "Output/Input directory (data)");
@@ -39,6 +39,7 @@ public class Main {
 			public void run() {
 				Exporter.instance().close();
 				Curator.instance().close();
+				Importer.instance().close();
 			}
 		}));;
 	}
@@ -48,15 +49,16 @@ public class Main {
 	
 	public static void main(String[] args) throws Exception {
 		
-		/**
+		
 		args = new String[] {
+				"-t", "import",
 				"-c", "bskp-es-cluster",
-				"-n", "node-3",
-				"-d", "EEFRJGPUUH",
-				"-m",
-				"-h", "54.244.142.81",
+				"-n", "node1",
+				"-d",
+				"-f", "db",
+				"-s", "2500"
 		};
-		**/
+		
 		
 		CommandLineParser parser = new DefaultParser();
 		CommandLine config = null;
@@ -79,6 +81,7 @@ public class Main {
 		String domainKeys = config.getOptionValue("d");
 		String query = config.getOptionValue("q");
 		int fetchSize = Integer.valueOf(config.getOptionValue("s", "5000"));
+		int bulkSize = Integer.valueOf(config.getOptionValue("s", "100"));
 		long keepAlive = Long.valueOf(config.getOptionValue("a", "60000"));
 		boolean verbose = config.hasOption("v");
 		String outFolder = config.getOptionValue("o", "data");
@@ -170,13 +173,30 @@ public class Main {
 				}
 				
 				exp.setup();
-				exp.export();
+				exp.start();
 			}finally {
 				exp.close();
 			}
 			break;
 		case "import":
-			System.err.println("Import net yet implemented.");
+			Importer importer = Importer.instance();
+			importer.setBulkSize(bulkSize);
+			importer.setClusterName(clusterName);
+			importer.setHost(hostName);
+			importer.setPort(port);
+			importer.setImportFromDB(format.equals("db"));
+			importer.setNodeName(nodeName);
+			importer.setOutFolder(outFolder);
+			
+			if(null != domainKeys) {
+				String[] rvals = domainKeys.split(",");
+				importer.setDomains(new HashSet<String>(Arrays.asList(rvals)));
+			}else {
+				importer.setImportAllDomains(config.hasOption("d"));
+			}
+
+			importer.setup();
+			importer.start();
 			break;
 		case "curate":
 			Curator curator = Curator.instance();
@@ -185,7 +205,7 @@ public class Main {
 			curator.curate();
 			break;
 		default:
-			System.err.format("Unknown target:%s, supported <export | import>\n", target);
+			System.err.format("Unknown target:%s, supported <export | import | curate>\n", target);
 			break;
 		}
 		
