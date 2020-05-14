@@ -47,7 +47,7 @@ public class Exporter {
 	private int fetchSize = 1000;
 	private long keepAlive = 60000;
 	private boolean debug = false;
-	private boolean exportToDB = false;
+	private boolean exportToDB = true;
 	private boolean exportAllDomains = false;
 	private boolean exportAllIndexes = false;
 	private boolean exportAllRecords = false;
@@ -167,7 +167,7 @@ public class Exporter {
 		
 	}
 	
-	public void export(){
+	public void start(){
 		
 		try {
 			
@@ -284,10 +284,10 @@ public class Exporter {
 			
 			System.out.format("Export complete, domains:%d, objects:%d, records:%d, messages:%d, total:%d\n", totalDomains, totalEIndexes, totalERecords, totalEMessages, totalExported);
 			
-			close();
-			
 		}catch(Exception ex) {
 			ex.printStackTrace();
+		}finally {
+			close();
 		}
 		
 	}
