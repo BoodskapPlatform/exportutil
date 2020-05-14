@@ -74,7 +74,7 @@ public class Curator {
 				
 				if(me.getValue().isEmpty()) continue;
 				
-				String line = String.format("tar -czf %s.tar.gz %s", me.getKey(), me.getKey());
+				String line = String.format("tar -czf %s-cassandra.tar.gz %s", me.getKey(), me.getKey());
 				allArchiveWriter.println(line);
 				
 				PrintWriter domainArchiveWriter = new PrintWriter(new File(curated, String.format("%s-archive.sh", me.getKey())));

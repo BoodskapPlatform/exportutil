@@ -9,13 +9,16 @@ import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.MissingOptionException;
+import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
+import org.json.JSONObject;
 
 public class Main {
 	
 	private static final Options opts = new Options();
 	
 	static {
+		
 		opts.addRequiredOption("t", "target", true, "Target mode <export | import | curate> (export)");
 		
 		opts.addOption("n", "node", true, "Elasticsearch Node Name");
@@ -23,16 +26,17 @@ public class Main {
 		opts.addOption("h", "host", true, "Elasticsearch host (localhost)");
 		opts.addOption("p", "port", true, "Elasticsearch transport port (9300)");
 		opts.addOption("sp", "sport", true, "Elasticsearch search port (9200)");
-		opts.addOption("d", "domain", false, "Comma separated domain keys (all)");
 		opts.addOption("q", "query", true, "Filter documents by query string");
 		opts.addOption("s", "size", true, "Fetch size (5000) for exporting, Batch size for importing (100)");
 		opts.addOption("a", "alive", true, "Keepalive in millis (60000)");
-		opts.addOption("v", "verbose", false, "Verbose mode (false)");
 		opts.addOption("o", "out", true, "Output/Input directory (data)");
 		opts.addOption("f", "format", true, "Exrt/Import Format <file|db> (db)");
-		opts.addOption("i", "indexes", false, "Comma separated index names (all)");
-		opts.addOption("r", "records", false, "Comma separated record ids (all)");
-		opts.addOption("m", "messages", false, "Comma separated message ids (all)");
+		opts.addOption("v", "verbose", false, "Verbose mode (false)");
+		
+		opts.addOption(Option.builder("d").longOpt("domains").hasArg().optionalArg(true).desc("Comma separated domain keys (all)").build());
+		opts.addOption(Option.builder("i").longOpt("indexes").hasArg().optionalArg(true).desc("Comma separated index names (all)").build());
+		opts.addOption(Option.builder("r").longOpt("records").hasArg().optionalArg(true).desc("Comma separated record ids (all)").build());
+		opts.addOption(Option.builder("m").longOpt("messages").hasArg().optionalArg(true).desc("Comma separated message ids (all)").build());
 		
 		Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {			
 			@Override
@@ -58,27 +62,48 @@ public class Main {
 		}catch(MissingOptionException mex) {
 			System.err.println(mex.getMessage());
 			HelpFormatter hf = new  HelpFormatter();
-			hf.printHelp("java -jar esdump.jar", opts);
+			hf.printHelp("java -jar exportutil.jar", opts);
 			return;
 		}
 		
-		String nodeName = config.getOptionValue("n");
-		String clusterName = config.getOptionValue("c");
-		String hostName =  config.getOptionValue("h", "localhost");
-		int port = Integer.valueOf(config.getOptionValue("p", "9300"));
-		int searchPort = Integer.valueOf(config.getOptionValue("sp", "9200"));
-		String indexes = config.getOptionValue("i");
-		String domainKeys = config.getOptionValue("d");
-		String query = config.getOptionValue("q");
-		int fetchSize = Integer.valueOf(config.getOptionValue("s", "5000"));
-		int bulkSize = Integer.valueOf(config.getOptionValue("s", "100"));
-		long keepAlive = Long.valueOf(config.getOptionValue("a", "60000"));
-		boolean verbose = config.hasOption("v");
-		String outFolder = config.getOptionValue("o", "data");
-		String target =  config.getOptionValue("t", "export");
-		String format = config.getOptionValue("f", "db");
-		String records = config.getOptionValue("r");
-		String messages = config.getOptionValue("m");
+		final String nodeName = config.getOptionValue("n");
+		final String clusterName = config.getOptionValue("c");
+		final String hostName =  config.getOptionValue("h", "localhost");
+		final int port = Integer.valueOf(config.getOptionValue("p", "9300"));
+		final int searchPort = Integer.valueOf(config.getOptionValue("sp", "9200"));
+		final String indexes = config.getOptionValue("i");
+		final String domainKeys = config.getOptionValue("d");
+		final String query = config.getOptionValue("q");
+		final int fetchSize = Integer.valueOf(config.getOptionValue("s", "5000"));
+		final int bulkSize = Integer.valueOf(config.getOptionValue("s", "100"));
+		final long keepAlive = Long.valueOf(config.getOptionValue("a", "60000"));
+		final boolean verbose = config.hasOption("v");
+		final String outFolder = config.getOptionValue("o", "data");
+		final String target =  config.getOptionValue("t", "export");
+		final String format = config.getOptionValue("f", "db");
+		final String records = config.getOptionValue("r");
+		final String messages = config.getOptionValue("m");
+		
+		JSONObject json = new JSONObject();
+		json.append("nodeName", nodeName);
+		json.append("clusterName", clusterName);
+		json.append("hostName", hostName);
+		json.append("port", port);
+		json.append("searchPort", searchPort);
+		json.append("indexes", indexes);
+		json.append("domainKeys", domainKeys);
+		json.append("query", query);
+		json.append("fetchSize", fetchSize);
+		json.append("bulkSize", bulkSize);
+		json.append("keepAlive", keepAlive);
+		json.append("verbose", verbose);
+		json.append("outFolder", outFolder);
+		json.append("target", target);
+		json.append("format", format);
+		json.append("records", records);
+		json.append("messages", messages);
+		
+		System.out.format("Settings: %s\n", json.toString(4));
 		
 		switch(format) {
 		case "file":
@@ -99,7 +124,7 @@ public class Main {
 			
 			if(!config.hasOption("i") && !config.hasOption("r") && !config.hasOption("m")) {
 				HelpFormatter hf = new  HelpFormatter();
-				hf.printHelp("java -jar esdump.jar", opts);
+				hf.printHelp("java -jar exportutil.jar", opts);
 				Thread.sleep(200);
 				System.err.println("One of these <indexes | records | messages> is required, you can combine these options");
 				return;
@@ -177,6 +202,7 @@ public class Main {
 			importer.setImportFromDB(format.equals("db"));
 			importer.setNodeName(nodeName);
 			importer.setOutFolder(outFolder);
+			importer.setDebug(verbose);
 			
 			if(null != domainKeys) {
 				String[] rvals = domainKeys.split(",");

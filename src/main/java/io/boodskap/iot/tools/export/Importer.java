@@ -43,6 +43,7 @@ public class Importer {
 	private boolean importAllDomains = false;
 	private int bulkSize = 100;
 	private Set<String> domains = new HashSet<String>();
+	private boolean debug = false;
 	
 	
 	private PreBuiltTransportClient client;
@@ -116,10 +117,17 @@ public class Importer {
 			System.out.format("Importing domain DB %s\n", domainDB);
 			
 	        connection = DriverManager.getConnection(String.format("jdbc:h2:%s", domainDB), "sa", "" );
+	        
+	        if(debug) System.out.println("DB opened, opening statement...");
+	        
 	        pstmt = connection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+	        
+	        if(debug) System.out.println("Statement opened, queriying records...");
 	        
 	        ResultSet result = pstmt.executeQuery("SELECT * FROM EXPORTED");
 	        List<IndexRequest> requests = new ArrayList<IndexRequest>();
+	        
+	        if(debug) System.out.println("Performing import...");
 	        
 	        while(result.next()) {
 	        	
@@ -451,6 +459,14 @@ public class Importer {
 
 	public boolean isImportAllDomains() {
 		return importAllDomains;
+	}
+
+	public boolean isDebug() {
+		return debug;
+	}
+
+	public void setDebug(boolean debug) {
+		this.debug = debug;
 	}
 
 }
