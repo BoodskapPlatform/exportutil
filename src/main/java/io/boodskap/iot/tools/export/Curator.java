@@ -10,10 +10,11 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import org.apache.commons.csv.CSVFormat;
@@ -32,7 +33,7 @@ public class Curator {
 	private long written = 0;
 	
 	private Map<String, Map<String, CSVPrinter>> writers = new HashMap<>();
-	private Map<String, Set<String>> domainFiles = new HashMap<>();
+	private Map<String, Map<String, Set<String>>> domainFiles = new HashMap<>();
 	
 	private Curator() {
 	}
@@ -67,23 +68,45 @@ public class Curator {
 				}
 			}
 			
-			for(Map.Entry<String, Set<String>> me : domainFiles.entrySet()) {
+			PrintWriter allArchiveWriter = new PrintWriter(new File(curated, "archives.sh"));
+			
+			for(Entry<String, Map<String, Set<String>>> me : domainFiles.entrySet()) {
 				
 				if(me.getValue().isEmpty()) continue;
+				
+				String line = String.format("tar -czf %s.tar.gz %s", me.getKey(), me.getKey());
+				allArchiveWriter.println(line);
+				
+				PrintWriter domainArchiveWriter = new PrintWriter(new File(curated, String.format("%s-archive.sh", me.getKey())));
+				domainArchiveWriter.println(line);
+				domainArchiveWriter.flush();
+				domainArchiveWriter.close();
 				
 				File domainDir = new File(curated, me.getKey());
 				File importFile = new File(domainDir, "import.cql");
 				PrintWriter writer = new PrintWriter(importFile);
 				
-				for(String file : me.getValue()) {
+				for(String file : me.getValue().keySet()) {
+					
+					Set<String> headers = me.getValue().get(file);
+					Iterator<String> iter = headers.iterator();
+					StringBuffer sb = new StringBuffer();
+					
+					while(iter.hasNext()) {
+						sb.append(iter.next());
+						sb.append(iter.hasNext() ? "," : "");
+					}
 					
 					String table = file.substring(0, file.lastIndexOf("."));
-					writer.println(String.format("COPY FROM './%s' TO boodskapks.%s WITH HEADER=TRUE;",file, table));
+					writer.println(String.format("COPY boodskapks.%s (%s) FROM './%s' WITH HEADER = TRUE;", table, sb, file));
 					
 				}
 				
 				writer.close();
 			}
+			
+			allArchiveWriter.flush();
+			allArchiveWriter.close();
 			
 		}finally {
 			System.out.format("Curated %d domains, %d files, written %d total records\n", domainFiles.size(), curated, written);
@@ -142,19 +165,25 @@ public class Curator {
 			File domainDir = new File(curated, domainKey);
 			domainDir.mkdirs();
 			File target = new File(domainDir, csvFile.getName());
-			writer = new CSVPrinter(new FileWriter(target), CSVFormat.RFC4180);
+			writer = new CSVPrinter(new FileWriter(target), CSVFormat.RFC4180.withQuote(null));
 			writer.printRecord(parser.getHeaderMap().keySet());
 			domainWriters.put(csvFile.getName(), writer);
 			
 		}
 		
-		Set<String> files = domainFiles.get(domainKey);
-		if(null == files) {
-			files = new HashSet<String>();
-			domainFiles.put(domainKey, files);
+		Map<String, Set<String>> fileMap = domainFiles.get(domainKey);
+		
+		if(null == fileMap) {
+			fileMap = new HashMap<>();
+			domainFiles.put(domainKey, fileMap);
 		}
 		
-		files.add(csvFile.getName());
+		Set<String> headers = fileMap.get(csvFile.getName());
+		
+		if(null == headers) {
+			headers = new LinkedHashSet<>(parser.getHeaderMap().keySet());
+			fileMap.put(csvFile.getName(), headers);
+		}
 		
 		writer.printRecord(record);
 		writer.flush();
