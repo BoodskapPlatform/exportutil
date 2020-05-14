@@ -1,0 +1,24 @@
+<project name="exportutil" default="package">
+	
+	<property name="version">1.0.0</property>
+	
+	<target name="package">
+		<delete dir="build/dist"></delete>
+		<mkdir dir="build/dist"/>
+		<copy todir="build/dist/libs">
+			<fileset dir="target/libs"></fileset>
+		</copy>
+		<copy todir="build/dist">
+			<fileset dir=".">
+				<include name="*.cql"/>
+				<include name="LICENSE"/>
+				<include name="README.md"/>
+			</fileset>
+		</copy>
+		<copy file="target/${ant.project.name}-${version}.jar" todir="build/dist"></copy>
+		<tar destfile="target/${ant.project.name}-${version}.tar" basedir="build/dist"/>
+		<gzip destfile="target/${ant.project.name}-${version}.tar.gz" src="target/${ant.project.name}-${version}.tar"/>
+		<delete file="target/${ant.project.name}-${version}.tar"></delete>
+		<!--<delete dir="build/dist"></delete>-->
+	</target>
+</project>

@@ -513,12 +513,6 @@ public class Exporter {
 		try{if(null != connection && !connection.isClosed()) connection.close();}catch(Exception ex) {ex.printStackTrace();}
 	} 
 
-	@Override
-	protected void finalize() throws Throwable {
-		close();
-		super.finalize();
-	}
-
 	public String getClusterName() {
 		return clusterName;
 	}

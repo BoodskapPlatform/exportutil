@@ -50,16 +50,6 @@ public class Main {
 	public static void main(String[] args) throws Exception {
 		
 		
-		args = new String[] {
-				"-t", "import",
-				"-c", "bskp-es-cluster",
-				"-n", "node1",
-				"-d",
-				"-f", "db",
-				"-s", "2500"
-		};
-		
-		
 		CommandLineParser parser = new DefaultParser();
 		CommandLine config = null;
 		
