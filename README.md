@@ -38,9 +38,9 @@ Before we can import data, we need to curate the exported dumps, the cqlsh utili
 You can either curate all of the data, or only a few domain data
 
 - Curate everything
-    - java -jar exportutil-1.0.0.jar -t **curate** -c cluster-name -n node_name -h node_ip_address -f file -d
+    - java -jar exportutil.jar -t **curate** -c cluster-name -n node_name -h node_ip_address -f file -d
 - Curate domain data
-    - java -jar exportutil-1.0.0.jar -t **curate** -c cluster-name -n node_name -h node_ip_address -f file -d comma_separated_domain_keys
+    - java -jar exportutil.jar -t **curate** -c cluster-name -n node_name -h node_ip_address -f file -d comma_separated_domain_keys
 
 #### Importing to Cassandra Database
 
@@ -61,11 +61,11 @@ You can do a directory listing under **./data/cassandra/curated/** to see the cu
 While importing your can either import all of the data, or only a few domain data 
 
 - Export everything
-    - java -jar exportutil-1.0.0.jar -t **export** -c cluster-name -n node_name -h node_ip_address -m -r -d
+    - java -jar exportutil.jar -t **export** -c cluster-name -n node_name -h node_ip_address -m -r -d
         - If you want to export everything into the filesystem instead of a compressed DB file, you can add a flag **-f file**
         - **Note**, if you have exported as filessystem files, then remember to import using the same flag **-f file**
 - Exporting domain data
-    - java -jar exportutil-1.0.0.jar -t **export** -c cluster-name -n node_name -h node_ip_address -f file -m -r -d comma_separated_domain_keys
+    - java -jar exportutil.jar -t **export** -c cluster-name -n node_name -h node_ip_address -f file -m -r -d comma_separated_domain_keys
 
 
 #### Importing to Elastic Search
@@ -73,8 +73,8 @@ While importing your can either import all of the data, or only a few domain dat
 While importing your can either import all of the data, or only a few domain data 
 
 - Importing everything
-    - java -jar exportutil-1.0.0.jar -t **import** -c cluster-name -n node_name -h node_ip_address -d
+    - java -jar exportutil.jar -t **import** -c cluster-name -n node_name -h node_ip_address -d
 - Importing domain data
-    - java -jar exportutil-1.0.0.jar -t **import** -c cluster-name -n node_name -h node_ip_address -d comma_separated_domain_keys
+    - java -jar exportutil.jar -t **import** -c cluster-name -n node_name -h node_ip_address -d comma_separated_domain_keys
 
 
