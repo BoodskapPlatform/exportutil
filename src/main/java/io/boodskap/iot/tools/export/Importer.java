@@ -26,10 +26,11 @@ import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.common.collect.Tuple;
 import org.elasticsearch.common.settings.Settings;
-import org.elasticsearch.common.transport.InetSocketTransportAddress;
+import org.elasticsearch.common.transport.TransportAddress;
 import org.elasticsearch.common.xcontent.XContentType;
 import org.elasticsearch.transport.client.PreBuiltTransportClient;
 
+@SuppressWarnings("deprecation")
 public class Importer {
 	
 	private static final Importer instance = new Importer();
@@ -44,7 +45,6 @@ public class Importer {
 	private int bulkSize = 100;
 	private Set<String> domains = new HashSet<String>();
 	private boolean debug = false;
-	private boolean haltOnInsertFailure = false;
 	
 	
 	private PreBuiltTransportClient client;
@@ -79,7 +79,7 @@ public class Importer {
 				  					.put("node.name", nodeName)
 				                    .put("cluster.name", clusterName).build()) ;
 		
-		client.addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName(host), port));
+		client.addTransportAddress(new TransportAddress(InetAddress.getByName(host), port));
 		
 	}
 	
@@ -256,11 +256,7 @@ public class Importer {
 		BulkResponse res = bulk.get();
 		
 		if(res.hasFailures()) {
-			if(haltOnInsertFailure) {
-				throw new RuntimeException(res.buildFailureMessage());
-			}else {
-				System.err.println(res.buildFailureMessage());
-			}
+			throw new RuntimeException(res.buildFailureMessage());
 		}
 	}
 	
@@ -472,14 +468,6 @@ public class Importer {
 
 	public void setDebug(boolean debug) {
 		this.debug = debug;
-	}
-
-	public boolean isHaltOnInsertFailure() {
-		return haltOnInsertFailure;
-	}
-
-	public void setHaltOnInsertFailure(boolean haltOnInsertFailure) {
-		this.haltOnInsertFailure = haltOnInsertFailure;
 	}
 
 }
