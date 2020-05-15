@@ -23,7 +23,7 @@ import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.SearchScrollRequest;
 import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.common.settings.Settings;
-import org.elasticsearch.common.transport.TransportAddress;
+import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
@@ -31,7 +31,6 @@ import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.transport.client.PreBuiltTransportClient;
 
-@SuppressWarnings("deprecation")
 public class Exporter {
 	
 	private static final Exporter instance = new Exporter();
@@ -164,7 +163,7 @@ public class Exporter {
 				  					.put("node.name", nodeName)
 				                    .put("cluster.name", clusterName).build()) ;
 		
-		client.addTransportAddress(new TransportAddress(InetAddress.getByName(host), port));
+		client.addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName(host), port));
 		
 	}
 	
@@ -334,13 +333,13 @@ public class Exporter {
 			
 			switch(itype) {
 			case "bskp":
-				System.out.format("\tExporting [%d/%d] index:%s, records: %s\n", currentIndex, totalIndexes, index, response.getHits().getTotalHits());
+				System.out.format("\tExporting [%d/%d] index:%s, records: %d\n", currentIndex, totalIndexes, index, response.getHits().getTotalHits());
 				break;
 			case "rec_":
-				System.out.format("\tExporting Record [%d/%d] index:%s, records: %s\n", currentRIndex, totalRIndexes, index, response.getHits().getTotalHits());
+				System.out.format("\tExporting Record [%d/%d] index:%s, records: %d\n", currentRIndex, totalRIndexes, index, response.getHits().getTotalHits());
 				break;
 			case "msg_":
-				System.out.format("\tExporting Message [%d/%d] index:%s, records: %s\n", currentMIndex, totalMIndexes, index, response.getHits().getTotalHits());
+				System.out.format("\tExporting Message [%d/%d] index:%s, records: %d\n", currentMIndex, totalMIndexes, index, response.getHits().getTotalHits());
 				break;
 			}
 
@@ -481,7 +480,7 @@ public class Exporter {
 				   .actionGet();
 
 		for (SearchHit hit : response.getHits()){
-			Map<String, Object> map = hit.getSourceAsMap();
+			Map<String, Object> map = hit.getSource();
 			domainKeys.add((String)map.get("domainKey"));
 		}
 

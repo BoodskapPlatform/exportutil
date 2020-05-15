@@ -58,7 +58,7 @@ You can do a directory listing under **./data/cassandra/curated/** to see the cu
 
 #### Exporting from Elastic Search
 
-You can either export all of the data, or only a few domain data 
+While importing your can either import all of the data, or only a few domain data 
 
 - Export everything
     - java -jar exportutil.jar -t **export** -c cluster-name -n node_name -h node_ip_address -m -r -d
@@ -70,7 +70,7 @@ You can either export all of the data, or only a few domain data
 
 #### Importing to Elastic Search
 
-You can either import all of the data, or only a few domain data 
+While importing your can either import all of the data, or only a few domain data 
 
 - Importing everything
     - java -jar exportutil.jar -t **import** -c cluster-name -n node_name -h node_ip_address -d
