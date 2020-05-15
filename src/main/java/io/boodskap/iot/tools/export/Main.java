@@ -37,6 +37,7 @@ public class Main {
 		opts.addOption(Option.builder("i").longOpt("indexes").hasArg().optionalArg(true).desc("Comma separated index names (all)").build());
 		opts.addOption(Option.builder("r").longOpt("records").hasArg().optionalArg(true).desc("Comma separated record ids (all)").build());
 		opts.addOption(Option.builder("m").longOpt("messages").hasArg().optionalArg(true).desc("Comma separated message ids (all)").build());
+		opts.addOption(Option.builder().longOpt("halt").desc("Halt on insertion failures (false)").build());
 		
 		Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {			
 			@Override
@@ -83,25 +84,27 @@ public class Main {
 		final String format = config.getOptionValue("f", "db");
 		final String records = config.getOptionValue("r");
 		final String messages = config.getOptionValue("m");
+		final boolean halt = config.hasOption("halt") ? config.hasOption("halt") : false;
 		
 		JSONObject json = new JSONObject();
-		json.append("nodeName", nodeName);
-		json.append("clusterName", clusterName);
-		json.append("hostName", hostName);
-		json.append("port", port);
-		json.append("searchPort", searchPort);
-		json.append("indexes", indexes);
-		json.append("domainKeys", domainKeys);
-		json.append("query", query);
-		json.append("fetchSize", fetchSize);
-		json.append("bulkSize", bulkSize);
-		json.append("keepAlive", keepAlive);
-		json.append("verbose", verbose);
-		json.append("outFolder", outFolder);
-		json.append("target", target);
-		json.append("format", format);
-		json.append("records", records);
-		json.append("messages", messages);
+		json.put("nodeName", nodeName);
+		json.put("clusterName", clusterName);
+		json.put("hostName", hostName);
+		json.put("port", port);
+		json.put("searchPort", searchPort);
+		json.put("indexes", indexes);
+		json.put("domainKeys", domainKeys);
+		json.put("query", query);
+		json.put("fetchSize", fetchSize);
+		json.put("bulkSize", bulkSize);
+		json.put("keepAlive", keepAlive);
+		json.put("verbose", verbose);
+		json.put("outFolder", outFolder);
+		json.put("target", target);
+		json.put("format", format);
+		json.put("records", records);
+		json.put("messages", messages);
+		json.put("halt", halt);
 		
 		System.out.format("Settings: %s\n", json.toString(4));
 		
@@ -203,6 +206,7 @@ public class Main {
 			importer.setNodeName(nodeName);
 			importer.setOutFolder(outFolder);
 			importer.setDebug(verbose);
+			importer.setHaltOnInsertFailure(halt);
 			
 			if(null != domainKeys) {
 				String[] rvals = domainKeys.split(",");

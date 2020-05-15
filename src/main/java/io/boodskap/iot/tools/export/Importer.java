@@ -45,6 +45,7 @@ public class Importer {
 	private int bulkSize = 100;
 	private Set<String> domains = new HashSet<String>();
 	private boolean debug = false;
+	private boolean haltOnInsertFailure = false;
 	
 	
 	private PreBuiltTransportClient client;
@@ -256,7 +257,11 @@ public class Importer {
 		BulkResponse res = bulk.get();
 		
 		if(res.hasFailures()) {
-			throw new RuntimeException(res.buildFailureMessage());
+			if(haltOnInsertFailure) {
+				throw new RuntimeException(res.buildFailureMessage());
+			}else {
+				System.err.println(res.buildFailureMessage());
+			}
 		}
 	}
 	
@@ -468,6 +473,14 @@ public class Importer {
 
 	public void setDebug(boolean debug) {
 		this.debug = debug;
+	}
+
+	public boolean isHaltOnInsertFailure() {
+		return haltOnInsertFailure;
+	}
+
+	public void setHaltOnInsertFailure(boolean haltOnInsertFailure) {
+		this.haltOnInsertFailure = haltOnInsertFailure;
 	}
 
 }
