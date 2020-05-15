@@ -16,7 +16,7 @@
 				<include name="README.md"/>
 			</fileset>
 		</copy>
-		<copy file="target/${ant.project.name}-${version}.jar" todir="${distdir}"></copy>
+		<copy file="target/${ant.project.name}-${version}.jar" tofile="${distdir}/${ant.project.name}.jar"></copy>
 		<tar destfile="target/${ant.project.name}-${version}.tar" basedir="build/dist"/>
 		<gzip destfile="target/${ant.project.name}-${version}.tar.gz" src="target/${ant.project.name}-${version}.tar"/>
 		<delete file="target/${ant.project.name}-${version}.tar"></delete>
