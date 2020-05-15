@@ -26,10 +26,11 @@ import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.common.collect.Tuple;
 import org.elasticsearch.common.settings.Settings;
-import org.elasticsearch.common.transport.InetSocketTransportAddress;
+import org.elasticsearch.common.transport.TransportAddress;
 import org.elasticsearch.common.xcontent.XContentType;
 import org.elasticsearch.transport.client.PreBuiltTransportClient;
 
+@SuppressWarnings("deprecation")
 public class Importer {
 	
 	private static final Importer instance = new Importer();
@@ -78,7 +79,7 @@ public class Importer {
 				  					.put("node.name", nodeName)
 				                    .put("cluster.name", clusterName).build()) ;
 		
-		client.addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName(host), port));
+		client.addTransportAddress(new TransportAddress(InetAddress.getByName(host), port));
 		
 	}
 	
